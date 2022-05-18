@@ -1,46 +1,115 @@
-# Getting Started with Create React App
+# How to Use Path Aliases With Create React App (CRA) and Typescript
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Setup
 
-## Available Scripts
+`npx create-react-app cra-ts-alias --template typescript`
 
-In the project directory, you can run:
+## Create components/Button.tsx
 
-### `npm start`
+```tsx
+// components/Button.tsx
+import React from "react";
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+type ButtonProps = {
+  text: string;
+}
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+export const Button: React.FC<ButtonProps> = ({ text }) => {
+  return <button>{text}</button>
+}
+```
 
-### `npm test`
+## Update tsconfig
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```diff
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
++   "baseUrl": "./src",
++   "paths": {
++     "@components/*": [
++       "components/*"
++     ],
++   }
+  },
+  "include": [
+    "src"
+  ]
+}
+```
 
-### `npm run build`
+This tells Typescript how to resolve references to `import {} from "@components"`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Add craco to modify webpack settings
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Install craco
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+yarn add craco
+```
 
-### `npm run eject`
+### Add craco config
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```js
+/* craco.config.js */
+const path = require(`path`);
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+module.exports = {
+  webpack: {
+    alias: {
+      "@components": path.resolve(__dirname, "src/components"),
+    },
+  },
+};
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+This tells webpack how to resolve the aliased import.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Use craco in package.json
 
-## Learn More
+```diff
+"scripts": {
+- "start": "npm start",
+- "build": "npm build",
++ "start": "craco start",
++ "build": "craco build",
+  "eject": "react-scripts eject"
+},
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Import Button in App using new alias
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```tsx
+// App.tsx
+import React from "react";
+import { Button } from "@components/Button";
+
+function App() {
+  return <Button text="Click me!"/>;
+}
+
+export default App;
+```
+
+## Resources
+
+https://stackoverflow.com/questions/63067555/how-to-make-an-import-shortcut-alias-in-create-react-app
+https://dev.to/larswaechter/path-aliases-with-typescript-in-nodejs-4353

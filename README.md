@@ -1,4 +1,4 @@
-# How to Use Path Aliases With Create React App (CRA) and Typescript
+# How to Use Path Aliases With Create React App (CRA), Webpack, and Typescript
 
 ## Setup
 
